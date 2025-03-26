@@ -12,8 +12,8 @@ pool:
 steps:
 - task: Maven@4
   inputs:
-    mavenPomFile: 'pom.xml'
-    goals: 'clean install'
+    mavenPomFile: 'jvm/pom.xml'
+    goals: 'clean install package deploy'
     publishJUnitResults: true
     testResultsFiles: '**/surefire-reports/TEST-*.xml'
     javaHomeOption: 'JDKVersion'
