@@ -10,6 +10,12 @@ pool:
   vmImage: ubuntu-latest
 
 steps:
+- task: DownloadSecureFile@1
+  name: settingsXml
+  displayName: 'Downloading settings.xml'
+  inputs:
+    secureFile: 'settings.xml'
+    
 - task: Maven@4
   inputs:
     mavenPomFile: 'jvm/pom.xml'
@@ -21,3 +27,4 @@ steps:
     mavenAuthenticateFeed: false
     effectivePomSkip: false
     sonarQubeRunAnalysis: false
+    settingsXml: $(settingsXml.secureFilePath)
