@@ -15,7 +15,6 @@
  */
 package com.amaseng.myinvois;
 
-import com.amaseng.myinvois.codelists.IDType;
 import com.amaseng.myinvois.exception.EInvoiceAPIException;
 import com.amaseng.myinvois.models.Document;
 import com.amaseng.myinvois.models.DocumentSubmission;
@@ -27,8 +26,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import okhttp3.*;
 
 import java.io.*;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.security.*;
 import java.time.Instant;
@@ -80,12 +77,12 @@ public class Api {
                 .build();
 
         try(Response response = client.newCall(request).execute()) {
+            String bodyString = response.body() == null ? "" : response.body().string();
             if (response.isSuccessful()) {
-                String responseBody = response.body().string();
                 ObjectMapper objectMapper = new ObjectMapper();
-                Map<String, String> map = objectMapper.readValue(responseBody, new TypeReference<Map<String, String>>() {});
+                Map<String, String> map = objectMapper.readValue(bodyString, new TypeReference<Map<String, String>>() {});
                 accessToken = map.get("access_token");
-                Integer expiresIn = Integer.parseInt(map.get("expires_in"));
+                int expiresIn = Integer.parseInt(map.get("expires_in"));
                 // Minus 100 seconds as a buffer zone before expiry
                 tokenExpireTime = Instant.now().plusSeconds(expiresIn - 100);
             } else {
@@ -93,7 +90,7 @@ public class Api {
                         .requestHeaders(response.headers().toMultimap())
                         .statusCode(response.code())
                         .message(response.message())
-                        .responseBody(response.body().string())
+                        .responseBody(bodyString)
                         .build();
             }
         }
@@ -166,7 +163,7 @@ public class Api {
         String requestBody = mapper.writerWithDefaultPrettyPrinter()
                 .writeValueAsString(requestBodyMap);
 
-        RequestBody body = RequestBody.create(MediaType.parse("application/json"), requestBody);
+        RequestBody body = RequestBody.create(requestBody, MediaType.parse("application/json"));
 
         Request request = new Request.Builder()
                 .url(baseUrl + "/api/v1.0/documentsubmissions/")
@@ -178,16 +175,43 @@ public class Api {
                 .build();
 
         try (Response response = client.newCall(request).execute()) {
+            String bodyString = response.body() == null ? "" : response.body().string();
             if (response.code() == 202) {
-                return response.body().string();
+                return bodyString;
             } else {
                 throw EInvoiceAPIException.builder()
                         .requestHeaders(response.headers().toMultimap())
                         .statusCode(response.code())
                         .message(response.message())
-                        .responseBody(response.body().string())
+                        .responseBody(bodyString)
                         .build();
             }
+        }
+    }
+
+    public String fetchDocumentDetails(String documentUuid) {
+        if (documentUuid == null || documentUuid.isBlank()) {
+            return null;
+        }
+
+        try {
+            Request request = new Request.Builder()
+                    .url(baseUrl + "/api/v1.0/documents/" + documentUuid + "/details")
+                    .header("Accept", "application/json")
+                    .header("Accept-Language", "en")
+                    .header("Authorization", "Bearer " + accessToken)
+                    .get()
+                    .build();
+
+            try (Response response = client.newCall(request).execute()) {
+                if (!response.isSuccessful()) {
+                    return null;
+                }
+
+                return response.body() == null ? "" : response.body().string();
+            }
+        } catch (IOException e) {
+            return null;
         }
     }
 
