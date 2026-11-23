@@ -25,7 +25,6 @@ steps:
   inputs:
     mavenPomFile: 'jvm/pom.xml'
     goals: 'clean install package deploy'
-    options: '-s $(settingsXml.secureFilePath)'
     publishJUnitResults: true
     testResultsFiles: '**/surefire-reports/TEST-*.xml'
     javaHomeOption: 'JDKVersion'
