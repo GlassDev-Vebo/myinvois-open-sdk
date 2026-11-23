@@ -10,12 +10,6 @@ pool:
   vmImage: ubuntu-latest
 
 steps:
-- task: DownloadSecureFile@1
-  name: settingsXml
-  displayName: 'Downloading settings.xml'
-  inputs:
-    secureFile: 'settings.xml'
-    
 - task: MavenAuthenticate@0
   displayName: 'Authenticate with Azure Artifacts'
   inputs:
