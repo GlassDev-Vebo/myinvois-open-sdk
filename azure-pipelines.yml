@@ -16,6 +16,11 @@ steps:
   inputs:
     secureFile: 'settings.xml'
     
+- task: MavenAuthenticate@0
+  displayName: 'Authenticate with Azure Artifacts'
+  inputs:
+    artifactsFeeds: 'vebo-glassdev'
+    
 - task: Maven@4
   inputs:
     mavenPomFile: 'jvm/pom.xml'
